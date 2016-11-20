@@ -1,0 +1,201 @@
+int FRONT_TOUCH= 10;
+int BACK_TOUCH=11;
+int RIGHT_MOTOR=3;
+int RIGHT_SPEED=70;
+int LEFT_MOTOR=1;
+int LEFT_SPEED=50;
+int LEFT_EYE=6;
+int RIGHT_EYE=4;
+int R_THRESH=88;
+int L_THRESH=88;
+
+
+void Forward(){
+    motor(RIGHT_MOTOR, RIGHT_SPEED);
+    motor(LEFT_MOTOR, LEFT_SPEED);
+}
+
+void Backward(){
+    motor(RIGHT_MOTOR, -1*RIGHT_SPEED);
+    motor(LEFT_MOTOR, -1*LEFT_SPEED);
+}
+
+void Left(){
+    motor(RIGHT_MOTOR, RIGHT_SPEED);
+    motor(LEFT_MOTOR, -1*LEFT_SPEED);
+}
+
+void Right(){
+    motor(RIGHT_MOTOR, -1*RIGHT_SPEED);
+    motor(LEFT_MOTOR, LEFT_SPEED);
+}
+void StrafeR(){
+    motor(RIGHT_MOTOR, RIGHT_SPEED/3);
+    motor(LEFT_MOTOR, LEFT_SPEED);
+}
+
+void StrafeL(){
+    motor(RIGHT_MOTOR, RIGHT_SPEED);
+    motor(LEFT_MOTOR, LEFT_SPEED/3);
+}
+
+
+
+void main() {
+    int stage=1;
+    
+    StartOn();
+    
+    Reset_Timer();
+    /*while(Timer()<15.){
+        ao();
+      }*/
+    
+    //getting robot to first tape and following it till the end.
+    while(stage=1){
+        Forward();
+        if(tapeR() || tapeL()){
+            Reset_Timer();
+            while(Timer() < 2.4)
+              LeftSideStraddle();
+            Reset_Timer();
+            TimeCheck();
+            while(Timer() < .8)
+              Forward();
+            TimeCheck();
+            Reset_Timer(); 
+        
+    
+            // stop();//to stop program after this point, comment out later.
+            //TimeCheck();
+            
+            //Turn around and travel back down the first tape path. 
+            while(Timer() < 1.2)
+              Backward();            
+            Left();
+            sleep(1.);          
+                                   
+            TimeCheck();            
+            //follow second tape path
+            while(!tapeR() && !tapeL()){
+                StrafeL();
+                TimeCheck();
+            }
+            Reset_Timer();
+            while(Timer()<3.6)
+              RightSideStraddle();
+            Forward();
+            sleep(1.);
+            TimeCheck();
+            //stop(); 
+            
+            //finding and following 3rd tape path
+            Backward();
+            sleep(1.);
+            TimeCheck();
+            Right();
+            sleep(.3);
+            Reset_Timer();
+            while(!tapeR() && !tapeL()){
+                StrafeR();
+                TimeCheck();
+                while(Timer()>5.)
+                  stop();
+            }
+                       
+            Reset_Timer();
+            while(Timer()<8.)
+              LeftSideStraddle();
+            Forward();
+            sleep(.3);
+            Backward();
+            sleep(.3);
+            stop();
+            
+            
+            
+            
+            
+            
+        
+        }
+              
+    }        
+}
+    
+
+void StartOn(){
+    //will wait for start button to be pushed then released in order to continue.
+    while(!start_button());
+    while(start_button());
+    reset_system_time();
+    
+}//end of StartOn()
+
+void TimeCheck(){
+    //will enter into an infinite loop when time is greater than or equal to 90 seconds. 
+    while(seconds()>=90.0){
+        ao();//all motors off
+    }//end of while loop.
+}//end of TimeCheck()
+
+/*timer for each task*/
+float _timer;
+
+void Reset_Timer(){
+    _timer=seconds();
+}
+
+float Timer(){
+    return seconds() - _timer;
+}
+
+//stating if the sensors are on tape or not
+int tapeR() {
+    return analog(RIGHT_EYE) < R_THRESH;
+}
+
+int tapeL() {
+    return analog(LEFT_EYE) < L_THRESH;
+}
+
+//Tape navigation for left sensor off
+void LeftSideStraddle() {
+    
+    if (tapeR() && !tapeL()) {
+        Forward();
+    }
+    if (!tapeR() && !tapeL()) {
+        Right();
+    }
+    if (tapeR() && tapeL()) {
+        Left();
+    }
+    if (!tapeR() && tapeL()) {
+        Left();
+    }
+}
+
+//Tape navigation for right sensor off
+void RightSideStraddle() {
+    
+    if (!tapeR() && tapeL()) {
+        Forward();
+    }
+    if (!tapeR() && !tapeL()) {
+        Left();
+    }
+    if (tapeR() && tapeL()) {
+        Right();
+    }
+    if (tapeR() && !tapeL()) {
+        Right();
+    }
+}
+
+void stop(){
+    ao();
+    while(1)
+      sleep(1.);
+}
+
